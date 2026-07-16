@@ -1,8 +1,5 @@
 // get-event/index_test.ts — Integration tests
-import {
-  assertEquals,
-  assertExists,
-} from "https://deno.land/std@0.224.0/testing/asserts.ts";
+import { assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handle } from "./index.ts";
 
@@ -30,9 +27,10 @@ Deno.test("get-event/400 bad id", async () => {
 Deno.test("get-event/404 not found", async () => {
   const c = createClient(supabaseUrl, serviceKey);
   const r = await handle(
-    new Request("http://localhost/?id=00000000-0000-0000-0000-000000000000", {
-      headers: { "x-api-key": testKey },
-    }),
+    new Request(
+      "http://localhost/?id=00000000-0000-0000-0000-000000000000",
+      { headers: { "x-api-key": testKey } },
+    ),
     c,
   );
   assertEquals(r.status, 404);
