@@ -3,10 +3,10 @@
   "info": {
     "title": "SpotPack Backend API",
     "version": "1.0.0",
-    "description": "API para digitalizar schedules de convenciones furry. Subí una imagen → IA extrae los datos → JSON estructurado."
+    "description": "API para digitalizar schedules de convenciones furry."
   },
   "servers": [
-    { "url": "http://127.0.0.1:54321/functions/v1", "description": "Local Supabase" },
+    { "url": "http://127.0.0.1:54321/functions/v1", "description": "Local" },
     { "url": "https://{project}.supabase.co/functions/v1", "description": "Production" }
   ],
   "security": [{ "ApiKeyAuth": [] }],
@@ -15,8 +15,7 @@
       "ApiKeyAuth": {
         "type": "apiKey",
         "in": "header",
-        "name": "x-api-key",
-        "description": "API key from api_keys table. Role: general (read/write) or maintainer (full access)."
+        "name": "x-api-key"
       }
     },
     "schemas": {
@@ -37,41 +36,13 @@
           "id": { "type": "string", "format": "uuid" },
           "event_id": { "type": "string", "format": "uuid" },
           "day_date": { "type": "string", "format": "date" },
-          "start_time": { "type": "string", "pattern": "^\\d{2}:\\d{2}$" },
-          "end_time": { "type": "string", "pattern": "^\\d{2}:\\d{2}$" },
+          "start_time": { "type": "string" },
+          "end_time": { "type": "string" },
           "title": { "type": "string" },
           "description": { "type": "string" },
           "room": { "type": "string" },
-          "category": { "type": "string", "enum": ["panel", "meetup", "workshop", "fursuit_games", "dance", "ceremony", "other"] },
-          "classification": { "type": "string", "enum": ["general", "+16", "+18", "+21"] },
-          "created_at": { "type": "string", "format": "date-time" }
-        }
-      },
-      "CreateEventInput": {
-        "type": "object",
-        "required": ["name", "start_date", "end_date"],
-        "properties": {
-          "name": { "type": "string" },
-          "start_date": { "type": "string", "format": "date" },
-          "end_date": { "type": "string", "format": "date" },
-          "location": { "type": "string" }
-        }
-      },
-      "CreateApiKeyInput": {
-        "type": "object",
-        "required": ["role", "label"],
-        "properties": {
-          "role": { "type": "string", "enum": ["general", "maintainer"] },
-          "label": { "type": "string" }
-        }
-      },
-      "ApiKeyResponse": {
-        "type": "object",
-        "properties": {
-          "key": { "type": "string", "description": "Raw key — shown once, not stored" },
-          "key_hash": { "type": "string" },
-          "role": { "type": "string" },
-          "label": { "type": "string" }
+          "category": { "type": "string", "enum": ["panel","meetup","workshop","fursuit_games","dance","ceremony","other"] },
+          "classification": { "type": "string", "enum": ["general","+16","+18","+21"] }
         }
       },
       "Error": {
@@ -81,6 +52,14 @@
           "detail": { "type": "string" }
         }
       }
+    },
+    "responses": {
+      "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "400": { "description": "Bad request", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "404": { "description": "Not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "422": { "description": "Unprocessable", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "502": { "description": "Bad gateway", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
     }
   },
   "paths": {
@@ -89,107 +68,43 @@
         "summary": "List all events",
         "operationId": "getEvents",
         "tags": ["Events"],
-        "security": [{ "ApiKeyAuth": [] }],
         "responses": {
-          "200": {
-            "description": "Events with item counts",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "events": {
-                      "type": "array",
-                      "items": { "$ref": "#/components/schemas/Event" }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": { "$ref": "#/components/responses/Unauthorized" }
+          "200": { "description": "OK" },
+          "401": { "$ref": "#/components/responses/401" }
         }
       }
     },
     "/get-event": {
       "get": {
-        "summary": "Get event with schedule items",
+        "summary": "Get event with items",
         "operationId": "getEvent",
         "tags": ["Events"],
-        "security": [{ "ApiKeyAuth": [] }],
         "parameters": [
-          { "name": "id", "in": "query", "required": true, "schema": { "type": "string", "format": "uuid" } }
+          { "name": "id", "in": "query", "required": true, "schema": { "type": "string" } }
         ],
         "responses": {
-          "200": {
-            "description": "Event with items",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "event": { "$ref": "#/components/schemas/Event" },
-                    "items": { "type": "array", "items": { "$ref": "#/components/schemas/ScheduleItem" } }
-                  }
-                }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" }
+          "200": { "description": "OK" },
+          "400": { "$ref": "#/components/responses/400" },
+          "401": { "$ref": "#/components/responses/401" },
+          "404": { "$ref": "#/components/responses/404" }
         }
       }
     },
     "/create-event": {
       "post": {
-        "summary": "Create a new event",
+        "summary": "Create event",
         "operationId": "createEvent",
         "tags": ["Events"],
-        "security": [{ "ApiKeyAuth": [] }],
         "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateEventInput" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Created event",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": { "event": { "$ref": "#/components/schemas/Event" } }
-                }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" }
-        }
-      }
-    },
-    "/update-event": {
-      "patch": {
-        "summary": "Update event fields",
-        "operationId": "updateEvent",
-        "tags": ["Events"],
-        "security": [{ "ApiKeyAuth": [] }],
-        "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["id"],
+                "required": ["name","start_date","end_date"],
                 "properties": {
-                  "id": { "type": "string", "format": "uuid" },
                   "name": { "type": "string" },
-                  "start_date": { "type": "string", "format": "date" },
-                  "end_date": { "type": "string", "format": "date" },
+                  "start_date": { "type": "string" },
+                  "end_date": { "type": "string" },
                   "location": { "type": "string" }
                 }
               }
@@ -197,19 +112,38 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Updated event",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": { "event": { "$ref": "#/components/schemas/Event" } }
+          "200": { "description": "Created" },
+          "400": { "$ref": "#/components/responses/400" },
+          "401": { "$ref": "#/components/responses/401" }
+        }
+      }
+    },
+    "/update-event": {
+      "patch": {
+        "summary": "Update event",
+        "operationId": "updateEvent",
+        "tags": ["Events"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "name": { "type": "string" },
+                  "start_date": { "type": "string" },
+                  "end_date": { "type": "string" },
+                  "location": { "type": "string" }
                 }
               }
             }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated" },
+          "400": { "$ref": "#/components/responses/400" },
+          "401": { "$ref": "#/components/responses/401" }
         }
       }
     },
@@ -218,43 +152,13 @@
         "summary": "Import schedule from image via AI",
         "operationId": "importSchedule",
         "tags": ["Import"],
-        "security": [{ "ApiKeyAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "required": ["image", "event_id"],
-                "properties": {
-                  "image": { "type": "string", "format": "binary", "description": "PNG/JPEG/WebP schedule image" },
-                  "event_id": { "type": "string", "format": "uuid" }
-                }
-              }
-            }
-          }
-        },
         "responses": {
-          "200": {
-            "description": "Imported items",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "count": { "type": "integer" },
-                    "items": { "type": "array", "items": { "$ref": "#/components/schemas/ScheduleItem" } }
-                  }
-                }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "502": { "$ref": "#/components/responses/BadGateway" }
+          "200": { "description": "Imported" },
+          "400": { "$ref": "#/components/responses/400" },
+          "401": { "$ref": "#/components/responses/401" },
+          "404": { "$ref": "#/components/responses/404" },
+          "422": { "$ref": "#/components/responses/422" },
+          "502": { "$ref": "#/components/responses/502" }
         }
       }
     },
@@ -263,71 +167,48 @@
         "summary": "Delete event (maintainer only)",
         "operationId": "deleteEvent",
         "tags": ["Events"],
-        "security": [{ "ApiKeyAuth": [] }],
         "parameters": [
-          { "name": "id", "in": "query", "required": true, "schema": { "type": "string", "format": "uuid" } }
+          { "name": "id", "in": "query", "required": true, "schema": { "type": "string" } }
         ],
         "responses": {
-          "200": {
-            "description": "Deleted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": { "success": { "type": "boolean" } }
-                }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" }
+          "200": { "description": "Deleted" },
+          "400": { "$ref": "#/components/responses/400" },
+          "401": { "$ref": "#/components/responses/401" },
+          "403": { "$ref": "#/components/responses/403" }
         }
       }
     },
     "/create-api-key": {
       "post": {
-        "summary": "Create new API key (maintainer only)",
+        "summary": "Create API key (maintainer only)",
         "operationId": "createApiKey",
         "tags": ["Admin"],
-        "security": [{ "ApiKeyAuth": [] }],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateApiKeyInput" }
+              "schema": {
+                "type": "object",
+                "required": ["role","label"],
+                "properties": {
+                  "role": { "type": "string", "enum": ["general","maintainer"] },
+                  "label": { "type": "string" }
+                }
+              }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "New API key (raw key shown once)",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ApiKeyResponse" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" }
+          "200": { "description": "Created" },
+          "400": { "$ref": "#/components/responses/400" },
+          "401": { "$ref": "#/components/responses/401" },
+          "403": { "$ref": "#/components/responses/403" }
         }
       }
     }
   },
-  "components": {
-    "responses": {
-      "Unauthorized": { "description": "Missing or invalid API key", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-      "Forbidden": { "description": "Insufficient role", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-      "BadRequest": { "description": "Invalid input", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-      "NotFound": { "description": "Resource not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-      "Unprocessable": { "description": "AI returned unparseable JSON", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-      "BadGateway": { "description": "AI API error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
-    }
-  },
   "tags": [
-    { "name": "Events", "description": "CRUD for convention events" },
-    { "name": "Import", "description": "AI-powered schedule import from images" },
-    { "name": "Admin", "description": "API key management (maintainer only)" }
+    { "name": "Events" },
+    { "name": "Import" },
+    { "name": "Admin" }
   ]
 }
