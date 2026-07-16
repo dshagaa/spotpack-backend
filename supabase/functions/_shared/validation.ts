@@ -33,7 +33,10 @@ export function validateCreateEvent(input: CreateEventInput): string | null {
   if (!input || typeof input !== "object") {
     return "Request body must be a JSON object";
   }
-  const { name, start_date, end_date } = input as unknown as Record<string, unknown>;
+  const { name, start_date, end_date } = input as unknown as Record<
+    string,
+    unknown
+  >;
 
   if (!name || typeof name !== "string" || name.trim().length === 0) {
     return "name is required and must be a non-empty string";
@@ -54,7 +57,10 @@ export function validateUpdateEvent(input: UpdateEventInput): string | null {
   if (!input || typeof input !== "object") {
     return "Request body must be a JSON object";
   }
-  const { id, name, start_date, end_date } = input as unknown as Record<string, unknown>;
+  const { id, name, start_date, end_date } = input as unknown as Record<
+    string,
+    unknown
+  >;
 
   if (!id || typeof id !== "string" || !isValidUUID(id)) {
     return "id is required and must be a valid UUID";
