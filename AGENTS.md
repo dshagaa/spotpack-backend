@@ -398,6 +398,27 @@ All reusable code lives in `_shared/`. Edge Functions import from here — never
 | `crypto.ts` | `sha256(input: string) → string`, `generateKey() → string` | Hashing + key generation |
 
 **Rules for `_shared/`:**
+
+---
+
+## GitHub Agent: Automated Code Reviewer
+
+This repository includes a GitHub Actions workflow that acts as an automated code-review agent. It runs on any `push` or `pull_request` to branches except `main` and `dev`, and posts review comments with suggestions to improve code quality.
+
+- **Workflow file:** [.github/workflows/code-review.yml](.github/workflows/code-review.yml#L1)
+- **What it runs:** `deno fmt --check`, `deno lint` (via `reviewdog`), and `deno test`.
+- **Comments:** Lint findings are posted as PR review comments using `reviewdog` with `github-pr-review` reporter.
+
+How to enable or customize:
+
+- Adjust ignored branches in the workflow `on:` section if you need different exclusions.
+- To add more analyzers (e.g., security scanners or language-specific linters), extend the workflow and wire outputs into `reviewdog` or a checks API integration.
+
+If you want, I can also:
+
+- Add CI badges to the `README.md`.
+- Configure additional analyzers (ESLint, shellcheck, CodeQL, etc.).
+
 - No side-effects on import — only pure exports
 - No `Deno.env.get()` in shared modules (that's the caller's job)
 - All types in `types.ts` — never redefine interfaces per-function
@@ -466,16 +487,27 @@ All reusable code lives in `_shared/`. Edge Functions import from here — never
 
 ### Git workflow
 
-23. **Never push to main directly.** All work happens on feature branches. `main` is protected — merged via PR only.
+23. **Deployment flow — never push to main or dev directly.** All work follows this path:
+    ```
+    feat/fix branch → PR → dev → PR → main
+    ```
+    - `dev` is the integration branch — feature branches merge here first
+    - `main` is production — only merged from `dev` via PR after review
+    - Direct pushes to `main` or `dev` are **blocked** (branch protection rules on GitHub)
 
-24. **Conventional branch names.** Branches follow the pattern:
+24. **Branch protection is enforced.** GitHub branch protection rules prevent:
+    - Direct pushes to `main` and `dev`
+    - Merging to `main` without an approved PR
+    - Merging to `main` without passing CI (tests + lint)
+
+25. **Conventional branch names.** Branches follow the pattern:
     - `feat/<description>` — new feature (e.g., `feat/import-schedule-endpoint`)
     - `fix/<description>` — bug fix (e.g., `fix/auth-401-on-expired-key`)
     - `docs/<description>` — documentation only
     - `refactor/<description>` — code restructuring, no behavior change
     - `test/<description>` — adding missing tests
 
-25. **Conventional commits.** Every commit message follows [Conventional Commits](https://www.conventionalcommits.org/):
+26. **Conventional commits.** Every commit message follows [Conventional Commits](https://www.conventionalcommits.org/):
     ```
     <type>(<scope>): <description>
     ```
@@ -483,15 +515,21 @@ All reusable code lives in `_shared/`. Edge Functions import from here — never
     Scopes: `auth`, `db`, `import`, `events`, `keys`, `shared`, `docs`
     Examples: `feat(import): add MiMo vision integration`, `fix(auth): handle expired api keys`, `docs(db): document api_keys table schema`
 
-26. **Small commits grouped by feature.** One commit = one logical change. Never mix two features in the same commit. If a commit touches 5 files across 3 features, split it.
+27. **Small commits grouped by feature.** One commit = one logical change. Never mix two features in the same commit. If a commit touches 5 files across 3 features, split it.
 
-27. **Commit before moving to next task.** After completing a task from the plan, commit immediately. Don't carry uncommitted changes into the next task.
+28. **Commit before moving to next task.** After completing a task from the plan, commit immediately. Don't carry uncommitted changes into the next task.
+
+### CI/CD
+
+29. **Automated code review runs on every push/PR.** The workflow at `.github/workflows/code-review.yml` runs `deno fmt --check`, `deno lint`, and `deno test` on all branches except `main` and `dev`. Lint findings are posted as PR review comments via `reviewdog`.
+
+30. **CI must pass before merge.** Merging to `main` requires passing CI. Merging to `dev` should also pass but is enforced by convention (branch protection can be added later).
 
 ### Documentation rules
 
-28. **Keep AGENTS.md updated.** After any architectural change (new endpoint, schema change, auth update, new shared module), update AGENTS.md in the same branch. The docs must always reflect the current state of the code.
+31. **Keep AGENTS.md updated.** After any architectural change (new endpoint, schema change, auth update, new shared module), update AGENTS.md in the same branch. The docs must always reflect the current state of the code.
 
-29. **MILESTONE.md for every change.** Each feature branch includes or updates `MILESTONE.md` — a changelog entry documenting what was done, why, and any breaking changes. Format:
+32. **MILESTONE.md for every change.** Each feature branch includes or updates `MILESTONE.md` — a changelog entry documenting what was done, why, and any breaking changes. Format:
     ```markdown
     ## [YYYY-MM-DD] <Feature Name>
     
