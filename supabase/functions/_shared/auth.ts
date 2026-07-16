@@ -1,25 +1,25 @@
 // _shared/auth.ts — Role-based authorization (async, queries api_keys table)
 
-import type { AuthResult, Action, Module, Role } from "./types.ts";
+import type { Action, AuthResult, Module, Role } from "./types.ts";
 import { sha256 } from "./crypto.ts";
 import { getClient } from "./supabase.ts";
 
 const PERMISSIONS: Record<Role, Record<Action, Module[]>> = {
   general: {
-    read:    ["events", "items"],
-    create:  ["events", "items"],
-    update:  ["events", "items"],
-    import:  ["schedules"],
-    delete:  [],
-    manage:  [],
+    read: ["events", "items"],
+    create: ["events", "items"],
+    update: ["events", "items"],
+    import: ["schedules"],
+    delete: [],
+    manage: [],
   },
   maintainer: {
-    read:    ["events", "items", "processing"],
-    create:  ["events", "items"],
-    update:  ["events", "items"],
-    import:  ["schedules"],
-    delete:  ["events", "items"],
-    manage:  ["storage", "keys"],
+    read: ["events", "items", "processing"],
+    create: ["events", "items"],
+    update: ["events", "items"],
+    import: ["schedules"],
+    delete: ["events", "items"],
+    manage: ["storage", "keys"],
   },
 };
 
@@ -74,7 +74,9 @@ export async function authorize(
       JSON.stringify({
         error: "Forbidden",
         detail: `Role '${role}' cannot ${action} on ${module}`,
-        required_role: PERMISSIONS.maintainer[action].includes(module) ? "maintainer" : undefined,
+        required_role: PERMISSIONS.maintainer[action].includes(module)
+          ? "maintainer"
+          : undefined,
       }),
       { status: 403, headers: { "Content-Type": "application/json" } },
     );

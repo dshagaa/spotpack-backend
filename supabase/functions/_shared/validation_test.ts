@@ -1,9 +1,14 @@
 // _shared/validation_test.ts
 import { assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
 import {
-  validateCreateEvent, validateUpdateEvent, validateCreateApiKey,
-  normalizeCategory, normalizeClassification,
-  isValidUUID, isValidDate, isValidTime,
+  isValidDate,
+  isValidTime,
+  isValidUUID,
+  normalizeCategory,
+  normalizeClassification,
+  validateCreateApiKey,
+  validateCreateEvent,
+  validateUpdateEvent,
 } from "./validation.ts";
 
 // ─── UUID ──────────────────────────────────────────────
@@ -45,9 +50,14 @@ Deno.test("validation/isValidTime rejects bad times", () => {
 // ─── Create Event ──────────────────────────────────────
 
 Deno.test("validation/validateCreateEvent accepts valid input", () => {
-  assertEquals(validateCreateEvent({
-    name: "FurCon", start_date: "2026-08-15", end_date: "2026-08-17",
-  }), null);
+  assertEquals(
+    validateCreateEvent({
+      name: "FurCon",
+      start_date: "2026-08-15",
+      end_date: "2026-08-17",
+    }),
+    null,
+  );
 });
 
 Deno.test("validation/validateCreateEvent rejects missing fields", () => {
@@ -58,9 +68,13 @@ Deno.test("validation/validateCreateEvent rejects missing fields", () => {
 // ─── Update Event ──────────────────────────────────────
 
 Deno.test("validation/validateUpdateEvent accepts partial update", () => {
-  assertEquals(validateUpdateEvent({
-    id: "550e8400-e29b-41d4-a716-446655440000", name: "New Name",
-  }), null);
+  assertEquals(
+    validateUpdateEvent({
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      name: "New Name",
+    }),
+    null,
+  );
 });
 
 Deno.test("validation/validateUpdateEvent rejects missing id", () => {
@@ -71,9 +85,13 @@ Deno.test("validation/validateUpdateEvent rejects missing id", () => {
 // ─── Create API Key ────────────────────────────────────
 
 Deno.test("validation/validateCreateApiKey accepts valid input", () => {
-  assertEquals(validateCreateApiKey({
-    role: "general", label: "Frontend App",
-  }), null);
+  assertEquals(
+    validateCreateApiKey({
+      role: "general",
+      label: "Frontend App",
+    }),
+    null,
+  );
 });
 
 Deno.test("validation/validateCreateApiKey rejects invalid role", () => {

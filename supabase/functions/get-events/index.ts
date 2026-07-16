@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { authorize } from "../_shared/auth.ts";
 import { getClient } from "../_shared/supabase.ts";
-import { ok, error } from "../_shared/response.ts";
+import { error, ok } from "../_shared/response.ts";
 
 serve(async (req: Request) => {
   const auth = await authorize(req, "read", "events");

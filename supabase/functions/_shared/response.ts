@@ -8,7 +8,11 @@ export function ok(data: Record<string, unknown>): Response {
 }
 
 /** Error response with status code */
-export function error(message: string, status = 500, detail?: string): Response {
+export function error(
+  message: string,
+  status = 500,
+  detail?: string,
+): Response {
   const body: Record<string, string> = { error: message };
   if (detail) body.detail = detail;
   return new Response(JSON.stringify(body), { status, headers: HEADERS });

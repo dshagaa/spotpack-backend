@@ -1,6 +1,10 @@
 // _shared/crypto_test.ts
-import { assertEquals, assertNotEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/testing/asserts.ts";
-import { sha256, generateKey } from "./crypto.ts";
+import {
+  assertEquals,
+  assertNotEquals,
+  assertStringIncludes,
+} from "https://deno.land/std@0.224.0/testing/asserts.ts";
+import { generateKey, sha256 } from "./crypto.ts";
 
 Deno.test("crypto/sha256 produces consistent output", async () => {
   const a = await sha256("hello");

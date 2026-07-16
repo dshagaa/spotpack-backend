@@ -1,6 +1,6 @@
 // _shared/response_test.ts
 import { assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
-import { ok, error, notFound, forbidden, badRequest } from "./response.ts";
+import { badRequest, error, forbidden, notFound, ok } from "./response.ts";
 
 Deno.test("response/ok returns 200 with JSON body", async () => {
   const res = ok({ hello: "world" });

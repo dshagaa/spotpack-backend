@@ -1,6 +1,9 @@
 // _shared/supabase.ts — Supabase client factory (always service_role)
 
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  createClient,
+  SupabaseClient,
+} from "https://esm.sh/@supabase/supabase-js@2";
 
 let _client: SupabaseClient | null = null;
 

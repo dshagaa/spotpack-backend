@@ -2,8 +2,8 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { authorize } from "../_shared/auth.ts";
 import { getClient } from "../_shared/supabase.ts";
-import { ok, error, badRequest } from "../_shared/response.ts";
-import { sha256, generateKey } from "../_shared/crypto.ts";
+import { badRequest, error, ok } from "../_shared/response.ts";
+import { generateKey, sha256 } from "../_shared/crypto.ts";
 import { validateCreateApiKey } from "../_shared/validation.ts";
 
 serve(async (req: Request) => {
@@ -11,7 +11,11 @@ serve(async (req: Request) => {
   if (auth instanceof Response) return auth;
 
   let body: unknown;
-  try { body = await req.json(); } catch { return badRequest("Invalid JSON body"); }
+  try {
+    body = await req.json();
+  } catch {
+    return badRequest("Invalid JSON body");
+  }
 
   const validationError = validateCreateApiKey(body);
   if (validationError) return badRequest(validationError);

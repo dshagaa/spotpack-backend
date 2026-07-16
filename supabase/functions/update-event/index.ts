@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { authorize } from "../_shared/auth.ts";
 import { getClient } from "../_shared/supabase.ts";
-import { ok, error, notFound, badRequest } from "../_shared/response.ts";
+import { badRequest, error, notFound, ok } from "../_shared/response.ts";
 import { validateUpdateEvent } from "../_shared/validation.ts";
 
 serve(async (req: Request) => {
@@ -10,7 +10,11 @@ serve(async (req: Request) => {
   if (auth instanceof Response) return auth;
 
   let body: unknown;
-  try { body = await req.json(); } catch { return badRequest("Invalid JSON body"); }
+  try {
+    body = await req.json();
+  } catch {
+    return badRequest("Invalid JSON body");
+  }
 
   const validationError = validateUpdateEvent(body);
   if (validationError) return badRequest(validationError);

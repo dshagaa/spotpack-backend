@@ -1,9 +1,16 @@
 // _shared/validation.ts — Input validation helpers
 
-import type { CreateEventInput, UpdateEventInput, CreateApiKeyInput, Category, Classification } from "./types.ts";
+import type {
+  Category,
+  Classification,
+  CreateApiKeyInput,
+  CreateEventInput,
+  UpdateEventInput,
+} from "./types.ts";
 import { CATEGORIES, CLASSIFICATIONS } from "./types.ts";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -23,13 +30,17 @@ export function isValidTime(value: string): boolean {
 
 /** Validate create-event input. Returns error string or null. */
 export function validateCreateEvent(input: unknown): string | null {
-  if (!input || typeof input !== "object") return "Request body must be a JSON object";
+  if (!input || typeof input !== "object") {
+    return "Request body must be a JSON object";
+  }
   const { name, start_date, end_date } = input as Record<string, unknown>;
 
   if (!name || typeof name !== "string" || name.trim().length === 0) {
     return "name is required and must be a non-empty string";
   }
-  if (!start_date || typeof start_date !== "string" || !isValidDate(start_date)) {
+  if (
+    !start_date || typeof start_date !== "string" || !isValidDate(start_date)
+  ) {
     return "start_date is required and must be YYYY-MM-DD";
   }
   if (!end_date || typeof end_date !== "string" || !isValidDate(end_date)) {
@@ -40,19 +51,29 @@ export function validateCreateEvent(input: unknown): string | null {
 
 /** Validate update-event input. Returns error string or null. */
 export function validateUpdateEvent(input: unknown): string | null {
-  if (!input || typeof input !== "object") return "Request body must be a JSON object";
+  if (!input || typeof input !== "object") {
+    return "Request body must be a JSON object";
+  }
   const { id, name, start_date, end_date } = input as Record<string, unknown>;
 
   if (!id || typeof id !== "string" || !isValidUUID(id)) {
     return "id is required and must be a valid UUID";
   }
-  if (start_date !== undefined && (typeof start_date !== "string" || !isValidDate(start_date))) {
+  if (
+    start_date !== undefined &&
+    (typeof start_date !== "string" || !isValidDate(start_date))
+  ) {
     return "start_date must be YYYY-MM-DD";
   }
-  if (end_date !== undefined && (typeof end_date !== "string" || !isValidDate(end_date))) {
+  if (
+    end_date !== undefined &&
+    (typeof end_date !== "string" || !isValidDate(end_date))
+  ) {
     return "end_date must be YYYY-MM-DD";
   }
-  if (name !== undefined && (typeof name !== "string" || name.trim().length === 0)) {
+  if (
+    name !== undefined && (typeof name !== "string" || name.trim().length === 0)
+  ) {
     return "name must be a non-empty string";
   }
   return null;
@@ -60,7 +81,9 @@ export function validateUpdateEvent(input: unknown): string | null {
 
 /** Validate create-api-key input. Returns error string or null. */
 export function validateCreateApiKey(input: unknown): string | null {
-  if (!input || typeof input !== "object") return "Request body must be a JSON object";
+  if (!input || typeof input !== "object") {
+    return "Request body must be a JSON object";
+  }
   const { role, label } = input as Record<string, unknown>;
 
   if (!role || (role !== "general" && role !== "maintainer")) {
@@ -99,6 +122,8 @@ export function normalizeClassification(value: string): Classification {
   if (cleaned === "+16" || cleaned === "16+" || cleaned === "16") return "+16";
   if (cleaned === "+18" || cleaned === "18+" || cleaned === "18") return "+18";
   if (cleaned === "+21" || cleaned === "21+" || cleaned === "21") return "+21";
-  if (CLASSIFICATIONS.includes(cleaned as Classification)) return cleaned as Classification;
+  if (CLASSIFICATIONS.includes(cleaned as Classification)) {
+    return cleaned as Classification;
+  }
   return "general";
 }

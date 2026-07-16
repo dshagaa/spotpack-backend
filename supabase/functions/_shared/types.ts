@@ -27,8 +27,8 @@ export interface ScheduleItem {
   id: string;
   event_id: string;
   day_date: string;
-  start_time: string;     // "HH:MM" 24h
-  end_time: string;       // "HH:MM" 24h
+  start_time: string; // "HH:MM" 24h
+  end_time: string; // "HH:MM" 24h
   title: string;
   description: string;
   room: string;
@@ -59,8 +59,13 @@ export interface ApiResponse<T> {
 // ─── Enums ────────────────────────────────────────────
 
 export const CATEGORIES = [
-  "panel", "meetup", "workshop", "fursuit_games",
-  "dance", "ceremony", "other",
+  "panel",
+  "meetup",
+  "workshop",
+  "fursuit_games",
+  "dance",
+  "ceremony",
+  "other",
 ] as const;
 export type Category = typeof CATEGORIES[number];
 
@@ -68,8 +73,20 @@ export const CLASSIFICATIONS = ["general", "+16", "+18", "+21"] as const;
 export type Classification = typeof CLASSIFICATIONS[number];
 
 export type Role = "general" | "maintainer";
-export type Action = "read" | "create" | "update" | "delete" | "import" | "manage";
-export type Module = "events" | "items" | "schedules" | "processing" | "storage" | "keys";
+export type Action =
+  | "read"
+  | "create"
+  | "update"
+  | "delete"
+  | "import"
+  | "manage";
+export type Module =
+  | "events"
+  | "items"
+  | "schedules"
+  | "processing"
+  | "storage"
+  | "keys";
 
 // ─── Request types ─────────────────────────────────────
 

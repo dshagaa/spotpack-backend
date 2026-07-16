@@ -3,20 +3,22 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { authorize } from "../_shared/auth.ts";
 import { getClient } from "../_shared/supabase.ts";
-import { ok, error, badRequest } from "../_shared/response.ts";
+import { badRequest, error, ok } from "../_shared/response.ts";
 import { isValidUUID } from "../_shared/validation.ts";
 import type { ParsedScheduleRow } from "../_shared/types.ts";
 
 // ─── Config ────────────────────────────────────────────
 
 const OPENCODE_API_KEY = Deno.env.get("OPENCODE_API_KEY")!;
-const OPENCODE_BASE_URL = Deno.env.get("OPENCODE_BASE_URL") || "https://opencode.ai/zen/v1";
+const OPENCODE_BASE_URL = Deno.env.get("OPENCODE_BASE_URL") ||
+  "https://opencode.ai/zen/v1";
 const VISION_MODEL = Deno.env.get("VISION_MODEL") || "mimo-v2.5-free";
 
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
-const SYSTEM_PROMPT = `You are a schedule extraction assistant. Analyze the convention schedule image and return a JSON array of events.
+const SYSTEM_PROMPT =
+  `You are a schedule extraction assistant. Analyze the convention schedule image and return a JSON array of events.
 
 For each row in the schedule, extract these fields:
 - day_date: "YYYY-MM-DD" format
@@ -66,10 +68,14 @@ serve(async (req: Request) => {
     return badRequest("event_id must be a valid UUID");
   }
   if (!ALLOWED_TYPES.includes(image.type)) {
-    return badRequest(`Invalid file type: ${image.type}. Allowed: PNG, JPEG, WebP`);
+    return badRequest(
+      `Invalid file type: ${image.type}. Allowed: PNG, JPEG, WebP`,
+    );
   }
   if (image.size > MAX_FILE_SIZE) {
-    return badRequest(`File too large (${(image.size / 1024 / 1024).toFixed(1)}MB). Max: 10MB`);
+    return badRequest(
+      `File too large (${(image.size / 1024 / 1024).toFixed(1)}MB). Max: 10MB`,
+    );
   }
 
   const supabase = getClient();
@@ -84,12 +90,17 @@ serve(async (req: Request) => {
 
   // Upload image to Storage
   const ext = image.name.split(".").pop() || "png";
-  const storagePath = `${eventId}/${Date.now()}_${crypto.randomUUID().slice(0, 8)}.${ext}`;
+  const storagePath = `${eventId}/${Date.now()}_${
+    crypto.randomUUID().slice(0, 8)
+  }.${ext}`;
   const imageBuffer = await image.arrayBuffer();
 
   const { error: uploadError } = await supabase.storage
     .from("schedule-images")
-    .upload(storagePath, imageBuffer, { contentType: image.type, upsert: false });
+    .upload(storagePath, imageBuffer, {
+      contentType: image.type,
+      upsert: false,
+    });
 
   if (uploadError) {
     return error("Storage upload failed", 500, uploadError.message);
@@ -138,8 +149,7 @@ serve(async (req: Request) => {
   // Parse JSON from response (may be wrapped in markdown code blocks)
   let parsedItems: ParsedScheduleRow[];
   try {
-    const jsonMatch =
-      rawContent.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/) ||
+    const jsonMatch = rawContent.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/) ||
       rawContent.match(/(\[[\s\S]*?\])/);
     const jsonStr = jsonMatch ? jsonMatch[1] : rawContent;
     parsedItems = JSON.parse(jsonStr);
@@ -151,7 +161,11 @@ serve(async (req: Request) => {
       storage_path: storagePath,
       raw_json: { error: "parse_failed", raw_content: rawContent },
     });
-    return error("Failed to parse vision response as JSON array", 422, rawContent.slice(0, 500));
+    return error(
+      "Failed to parse vision response as JSON array",
+      422,
+      rawContent.slice(0, 500),
+    );
   }
 
   // Store raw result in processing_results

@@ -13,7 +13,8 @@ export async function sha256(input: string): Promise<string> {
 
 /** Generate a cryptographically random API key string */
 export function generateKey(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
   const bytes = new Uint8Array(48);
   crypto.getRandomValues(bytes);
   let key = "sk-sp-"; // SpotPack prefix
