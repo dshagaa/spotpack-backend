@@ -61,6 +61,12 @@ ALTER TABLE events              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE schedule_items      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE processing_results  ENABLE ROW LEVEL SECURITY;
 
+-- Grant table access to roles (RLS policies control row access)
+GRANT SELECT, INSERT, UPDATE, DELETE ON api_keys TO service_role, anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON events TO service_role, anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON schedule_items TO service_role, anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON processing_results TO service_role, anon, authenticated;
+
 -- No public access (anon = zero access to all tables)
 CREATE POLICY "deny_anon_events" ON events
   FOR ALL TO anon
