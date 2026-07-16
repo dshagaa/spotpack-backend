@@ -29,7 +29,7 @@ export function isValidTime(value: string): boolean {
 }
 
 /** Validate create-event input. Returns error string or null. */
-export function validateCreateEvent(input: unknown): string | null {
+export function validateCreateEvent(input: CreateEventInput): string | null {
   if (!input || typeof input !== "object") {
     return "Request body must be a JSON object";
   }
@@ -50,7 +50,7 @@ export function validateCreateEvent(input: unknown): string | null {
 }
 
 /** Validate update-event input. Returns error string or null. */
-export function validateUpdateEvent(input: unknown): string | null {
+export function validateUpdateEvent(input: UpdateEventInput): string | null {
   if (!input || typeof input !== "object") {
     return "Request body must be a JSON object";
   }
@@ -80,7 +80,7 @@ export function validateUpdateEvent(input: unknown): string | null {
 }
 
 /** Validate create-api-key input. Returns error string or null. */
-export function validateCreateApiKey(input: unknown): string | null {
+export function validateCreateApiKey(input: CreateApiKeyInput): string | null {
   if (!input || typeof input !== "object") {
     return "Request body must be a JSON object";
   }
