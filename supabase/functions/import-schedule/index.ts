@@ -46,8 +46,11 @@ Return format:
 // ─── Handlers ──────────────────────────────────────────
 
 serve(async (req: Request) => {
+  // Init supabase client
+  const supabase = getClient();
+
   // Auth
-  const auth = await authorize(req, "import", "schedules");
+  const auth = await authorize(req, supabase, "import", "schedules");
   if (auth instanceof Response) return auth;
 
   // Parse multipart
@@ -77,8 +80,6 @@ serve(async (req: Request) => {
       `File too large (${(image.size / 1024 / 1024).toFixed(1)}MB). Max: 10MB`,
     );
   }
-
-  const supabase = getClient();
 
   // Verify event exists
   const { data: event } = await supabase

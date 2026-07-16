@@ -1,8 +1,8 @@
 // _shared/auth.ts — Role-based authorization (async, queries api_keys table)
 
 import type { Action, AuthResult, Module, Role } from "./types.ts";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sha256 } from "./crypto.ts";
-import { getClient } from "./supabase.ts";
 
 const PERMISSIONS: Record<Role, Record<Action, Module[]>> = {
   general: {
@@ -28,11 +28,13 @@ const PERMISSIONS: Record<Role, Record<Action, Module[]>> = {
  * Returns AuthResult on success, or a Response (401/403) to return immediately.
  *
  * Usage:
- *   const auth = await authorize(req, "import", "schedules");
+ *   const supabase = getClient();
+ *   const auth = await authorize(req, supabase, "import", "schedules");
  *   if (auth instanceof Response) return auth;
  */
 export async function authorize(
   req: Request,
+  supabase: SupabaseClient,
   action: Action,
   module: Module,
 ): Promise<AuthResult | Response> {
@@ -42,7 +44,6 @@ export async function authorize(
   const hash = await sha256(key);
 
   // Look up in database
-  const supabase = getClient();
   const { data, error: dbError } = await supabase
     .from("api_keys")
     .select("role, id")
