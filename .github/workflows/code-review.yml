@@ -2,13 +2,13 @@ name: Code Quality Review
 
 on:
   push:
-    branches-ignore: [main, dev]
+    branches: ['**', '!main', '!dev']
   pull_request:
-    branches-ignore: [main, dev]
+    branches: ['**', '!main', '!dev']
 
 jobs:
   review:
-    name: Run linters, tests and post review comments
+    name: Lint & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -18,23 +18,21 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: v1.x
+          deno-version: v2.x
 
       - name: Cache Deno dependencies
         uses: actions/cache@v4
         with:
           path: ~/.cache/deno
-          key: ${{ runner.os }}-deno-${{ hashFiles('**/import_map.json', '**/deno.lock') }}
+          key: ${{ runner.os }}-deno-${{ hashFiles('supabase/functions/**/*.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-deno-
 
       - name: Check formatting
-        run: deno fmt --check
+        run: deno fmt --check supabase/functions/
 
-      - name: Run deno lint and post comments via reviewdog
-        uses: reviewdog/action-deno-lint@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-pr-review
-          fail_on_error: false
+      - name: Lint
+        run: deno lint supabase/functions/
 
-      - name: Run tests
-        run: deno test --unstable --no-check
+      - name: Test
+        run: deno test --allow-env --allow-net supabase/functions/
