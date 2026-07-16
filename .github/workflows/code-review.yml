@@ -1,0 +1,40 @@
+name: Code Quality Review
+
+on:
+  push:
+    branches-ignore: [main, dev]
+  pull_request:
+    branches-ignore: [main, dev]
+
+jobs:
+  review:
+    name: Run linters, tests and post review comments
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Cache Deno dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/deno
+          key: ${{ runner.os }}-deno-${{ hashFiles('**/import_map.json', '**/deno.lock') }}
+
+      - name: Check formatting
+        run: deno fmt --check
+
+      - name: Run deno lint and post comments via reviewdog
+        uses: reviewdog/action-deno-lint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          fail_on_error: false
+
+      - name: Run tests
+        run: deno test --unstable --no-check
