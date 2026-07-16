@@ -10,6 +10,7 @@ import {
   validateCreateEvent,
   validateUpdateEvent,
 } from "./validation.ts";
+import type { CreateApiKeyInput, CreateEventInput, UpdateEventInput } from "./types.ts";
 
 // ─── UUID ──────────────────────────────────────────────
 
@@ -61,7 +62,7 @@ Deno.test("validation/validateCreateEvent accepts valid input", () => {
 });
 
 Deno.test("validation/validateCreateEvent rejects missing fields", () => {
-  const err = validateCreateEvent({ name: "Test" });
+  const err = validateCreateEvent({ name: "Test" } as unknown as CreateEventInput);
   assertEquals(typeof err, "string");
 });
 
@@ -78,7 +79,7 @@ Deno.test("validation/validateUpdateEvent accepts partial update", () => {
 });
 
 Deno.test("validation/validateUpdateEvent rejects missing id", () => {
-  const err = validateUpdateEvent({ name: "Test" });
+  const err = validateUpdateEvent({ name: "Test" } as unknown as UpdateEventInput);
   assertEquals(typeof err, "string");
 });
 
@@ -95,7 +96,7 @@ Deno.test("validation/validateCreateApiKey accepts valid input", () => {
 });
 
 Deno.test("validation/validateCreateApiKey rejects invalid role", () => {
-  const err = validateCreateApiKey({ role: "admin", label: "Test" });
+  const err = validateCreateApiKey({ role: "admin", label: "Test" } as unknown as CreateApiKeyInput);
   assertEquals(typeof err, "string");
 });
 

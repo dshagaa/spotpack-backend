@@ -29,9 +29,9 @@ Deno.test("crypto/generateKey has sk-sp- prefix", () => {
   assertStringIncludes(key, "sk-sp-");
 });
 
-Deno.test("crypto/generateKey is 53 chars (5 prefix + 48 random)", () => {
+Deno.test("crypto/generateKey is 54 chars (6 prefix + 48 random)", () => {
   const key = generateKey();
-  assertEquals(key.length, 53);
+  assertEquals(key.length, 54);
 });
 
 Deno.test("crypto/generateKey produces unique keys", () => {
