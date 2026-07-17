@@ -118,7 +118,7 @@ export async function handle(
           },
         ],
         temperature: 0.1,
-        max_tokens: 8000,
+        max_tokens: 16000,
       }),
     });
 
@@ -138,8 +138,8 @@ export async function handle(
     let parsedItems: Record<string, unknown>[];
     try {
       const jsonMatch =
-        rawContent.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/) ||
-        rawContent.match(/(\[[\s\S]*?\])/);
+        rawContent.match(/```(?:json)?\s*(\[[\s\S]*\])\s*```/) ||
+        rawContent.match(/(\[[\s\S]*\])/);
       const jsonStr = jsonMatch ? jsonMatch[1] : rawContent;
       parsedItems = JSON.parse(jsonStr);
       if (!Array.isArray(parsedItems)) throw new Error("Not an array");
