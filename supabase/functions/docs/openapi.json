@@ -7,7 +7,10 @@
   },
   "servers": [
     { "url": "http://127.0.0.1:54321/functions/v1", "description": "Local" },
-    { "url": "https://{project}.supabase.co/functions/v1", "description": "Production" }
+    {
+      "url": "https://{project}.supabase.co/functions/v1",
+      "description": "Production"
+    }
   ],
   "security": [{ "ApiKeyAuth": [] }],
   "components": {
@@ -41,8 +44,22 @@
           "title": { "type": "string" },
           "description": { "type": "string" },
           "room": { "type": "string" },
-          "category": { "type": "string", "enum": ["panel","meetup","workshop","fursuit_games","dance","ceremony","other"] },
-          "classification": { "type": "string", "enum": ["general","+16","+18","+21"] }
+          "category": {
+            "type": "string",
+            "enum": [
+              "panel",
+              "meetup",
+              "workshop",
+              "fursuit_games",
+              "dance",
+              "ceremony",
+              "other"
+            ]
+          },
+          "classification": {
+            "type": "string",
+            "enum": ["general", "+16", "+18", "+21"]
+          }
         }
       },
       "Error": {
@@ -54,12 +71,54 @@
       }
     },
     "responses": {
-      "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-      "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-      "400": { "description": "Bad request", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-      "404": { "description": "Not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-      "422": { "description": "Unprocessable", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-      "502": { "description": "Bad gateway", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+      "401": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
+      "400": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
+      "404": {
+        "description": "Not found",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
+      "422": {
+        "description": "Unprocessable",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
+      "502": {
+        "description": "Bad gateway",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      }
     }
   },
   "paths": {
@@ -80,7 +139,12 @@
         "operationId": "getEvent",
         "tags": ["Events"],
         "parameters": [
-          { "name": "id", "in": "query", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "responses": {
           "200": { "description": "OK" },
@@ -100,7 +164,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["name","start_date","end_date"],
+                "required": ["name", "start_date", "end_date"],
                 "properties": {
                   "name": { "type": "string" },
                   "start_date": { "type": "string" },
@@ -168,7 +232,12 @@
         "operationId": "deleteEvent",
         "tags": ["Events"],
         "parameters": [
-          { "name": "id", "in": "query", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "responses": {
           "200": { "description": "Deleted" },
@@ -188,9 +257,12 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["role","label"],
+                "required": ["role", "label"],
                 "properties": {
-                  "role": { "type": "string", "enum": ["general","maintainer"] },
+                  "role": {
+                    "type": "string",
+                    "enum": ["general", "maintainer"]
+                  },
                   "label": { "type": "string" }
                 }
               }
