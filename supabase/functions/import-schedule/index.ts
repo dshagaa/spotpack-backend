@@ -45,140 +45,153 @@ export async function handle(
   req: Request,
   supabase: SupabaseClient,
 ): Promise<Response> {
-  const auth = await authorize(req, supabase, "import", "schedules");
-  if (auth instanceof Response) return auth;
+  if (req.method === "OPTIONS") return corsPreflight();
 
-  let formData: FormData;
   try {
-    formData = await req.formData();
-  } catch {
-    return badRequest("Invalid multipart form data");
-  }
+    const auth = await authorize(req, supabase, "import", "schedules");
+    if (auth instanceof Response) return auth;
 
-  const image = formData.get("image") as File | null;
-  const eventId = formData.get("event_id") as string | null;
-  if (!image || !eventId) return badRequest("Missing image or event_id");
-  if (!isValidUUID(eventId)) return badRequest("event_id must be a valid UUID");
-  if (!ALLOWED_TYPES.includes(image.type)) {
-    return badRequest(`Invalid file type: ${image.type}`);
-  }
-  if (image.size > MAX_FILE_SIZE) {
-    return badRequest("File too large (max 10MB)");
-  }
+    let formData: FormData;
+    try {
+      formData = await req.formData();
+    } catch {
+      return badRequest("Invalid multipart form data");
+    }
 
-  // Verify event exists
-  const { data: event } = await supabase.from("events").select("id").eq(
-    "id",
-    eventId,
-  ).maybeSingle();
-  if (!event) return error("Event not found", 404);
+    const image = formData.get("image") as File | null;
+    const eventId = formData.get("event_id") as string | null;
+    if (!image || !eventId) return badRequest("Missing image or event_id");
+    if (!isValidUUID(eventId)) {
+      return badRequest("event_id must be a valid UUID");
+    }
+    if (!ALLOWED_TYPES.includes(image.type)) {
+      return badRequest(`Invalid file type: ${image.type}`);
+    }
+    if (image.size > MAX_FILE_SIZE) {
+      return badRequest("File too large (max 10MB)");
+    }
 
-  // Upload to storage
-  const ext = image.name.split(".").pop() || "png";
-  const storagePath = `${eventId}/${Date.now()}_${
-    crypto.randomUUID().slice(0, 8)
-  }.${ext}`;
-  const imageBuffer = await image.arrayBuffer();
+    // Verify event exists
+    const { data: event } = await supabase.from("events").select("id").eq(
+      "id",
+      eventId,
+    ).maybeSingle();
+    if (!event) return error("Event not found", 404);
 
-  const { error: uploadError } = await supabase.storage
-    .from("schedule-images")
-    .upload(storagePath, imageBuffer, {
-      contentType: image.type,
-      upsert: false,
-    });
-  if (uploadError) return error("Storage upload failed", 500);
+    // Upload to storage
+    const ext = image.name.split(".").pop() || "png";
+    const storagePath = `${eventId}/${Date.now()}_${
+      crypto.randomUUID().slice(0, 8)
+    }.${ext}`;
+    const imageBuffer = await image.arrayBuffer();
 
-  // Call MiMo V2.5
-  const apiKey = Deno.env.get("OPENCODE_API_KEY") || "";
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
-  const visionRes = await fetch(OPENCODE_URL, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: Deno.env.get("VISION_MODEL") || VISION_MODEL,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: [{
-            type: "image_url",
-            image_url: { url: `data:${image.type};base64,${base64}` },
-          }],
-        },
-      ],
-      temperature: 0.1,
-      max_tokens: 8000,
-    }),
-  });
+    const { error: uploadError } = await supabase.storage
+      .from("schedule-images")
+      .upload(storagePath, imageBuffer, {
+        contentType: image.type,
+        upsert: false,
+      });
+    if (uploadError) return error("Storage upload failed", 500);
 
-  if (!visionRes.ok) {
-    const errText = await visionRes.text();
-    return error(
-      `Vision API error: ${visionRes.status}`,
-      502,
-      errText.slice(0, 200),
+    // Call MiMo V2.5
+    const apiKey = Deno.env.get("OPENCODE_API_KEY") || "";
+    const base64 = btoa(
+      Array.from(new Uint8Array(imageBuffer), (b) => String.fromCharCode(b))
+        .join(""),
     );
-  }
+    const visionRes = await fetch(OPENCODE_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: Deno.env.get("VISION_MODEL") || VISION_MODEL,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: [{
+              type: "image_url",
+              image_url: { url: `data:${image.type};base64,${base64}` },
+            }],
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: 8000,
+      }),
+    });
 
-  const visionData = await visionRes.json();
-  const rawContent = visionData.choices?.[0]?.message?.content || "";
+    if (!visionRes.ok) {
+      const errText = await visionRes.text();
+      return error(
+        `Vision API error: ${visionRes.status}`,
+        502,
+        errText.slice(0, 200),
+      );
+    }
 
-  // Parse JSON from response
-  let parsedItems: Record<string, unknown>[];
-  try {
-    const jsonMatch = rawContent.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/) ||
-      rawContent.match(/(\[[\s\S]*?\])/);
-    const jsonStr = jsonMatch ? jsonMatch[1] : rawContent;
-    parsedItems = JSON.parse(jsonStr);
-    if (!Array.isArray(parsedItems)) throw new Error("Not an array");
-  } catch {
+    const visionData = await visionRes.json();
+    const rawContent = visionData.choices?.[0]?.message?.content || "";
+
+    // Parse JSON from response
+    let parsedItems: Record<string, unknown>[];
+    try {
+      const jsonMatch =
+        rawContent.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/) ||
+        rawContent.match(/(\[[\s\S]*?\])/);
+      const jsonStr = jsonMatch ? jsonMatch[1] : rawContent;
+      parsedItems = JSON.parse(jsonStr);
+      if (!Array.isArray(parsedItems)) throw new Error("Not an array");
+    } catch {
+      await supabase.from("processing_results").insert({
+        event_id: eventId,
+        storage_path: storagePath,
+        raw_json: { error: "parse_failed", raw_content: rawContent },
+      });
+      return error(
+        "Failed to parse vision response",
+        422,
+        rawContent.slice(0, 500),
+      );
+    }
+
+    // Store raw result
     await supabase.from("processing_results").insert({
       event_id: eventId,
       storage_path: storagePath,
-      raw_json: { error: "parse_failed", raw_content: rawContent },
+      raw_json: parsedItems,
     });
-    return error(
-      "Failed to parse vision response",
-      422,
-      rawContent.slice(0, 500),
-    );
-  }
 
-  // Store raw result
-  await supabase.from("processing_results").insert({
-    event_id: eventId,
-    storage_path: storagePath,
-    raw_json: parsedItems,
-  });
-
-  // Insert schedule items
-  let count = 0;
-  const items: Record<string, unknown>[] = [];
-  for (const item of parsedItems) {
-    const { error: insertErr, data } = await supabase.from("schedule_items")
-      .insert({
-        event_id: eventId,
-        day_date: item.day_date,
-        start_time: item.start_time,
-        end_time: item.end_time,
-        title: item.title,
-        description: (item.description as string) || "",
-        room: (item.room as string) || "",
-        category: normalizeCategory(item.category as string || ""),
-        classification: normalizeClassification(
-          item.classification as string || "",
-        ),
-      }).select().single();
-    if (!insertErr && data) {
-      count++;
-      items.push(data);
+    // Insert schedule items
+    let count = 0;
+    const items: Record<string, unknown>[] = [];
+    for (const item of parsedItems) {
+      const { error: insertErr, data } = await supabase.from("schedule_items")
+        .insert({
+          event_id: eventId,
+          day_date: item.day_date,
+          start_time: item.start_time,
+          end_time: item.end_time,
+          title: item.title,
+          description: (item.description as string) || "",
+          room: (item.room as string) || "",
+          category: normalizeCategory(item.category as string || ""),
+          classification: normalizeClassification(
+            item.classification as string || "",
+          ),
+        }).select().single();
+      if (!insertErr && data) {
+        count++;
+        items.push(data);
+      }
     }
-  }
 
-  return ok({ success: true, count, items });
+    return ok({ success: true, count, items });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return error(`Internal error: ${msg}`, 500);
+  }
 }
 
 if (import.meta.main) serve((req) => handle(req, getClient()));
