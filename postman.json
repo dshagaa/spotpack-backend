@@ -1,0 +1,149 @@
+{
+  "info": {
+    "name": "SpotPack Backend",
+    "description": "API para digitalizar schedules de convenciones furry.\n\nAuth: Header x-api-key (general o maintainer)\nLocal: http://127.0.0.1:54321/functions/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "value",
+        "value": "sk-spotpack-general-test-key-2026",
+        "type": "string"
+      },
+      {
+        "key": "key",
+        "value": "x-api-key",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:54321/functions/v1"
+    },
+    {
+      "key": "eventId",
+      "value": "9ca318aa-d39d-4e7e-9cdc-eb9d4e49e1f1"
+    },
+    {
+      "key": "apiKey",
+      "value": "sk-spotpack-general-test-key-2026"
+    }
+  ],
+  "item": [
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "List events",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/get-events", "host": ["{{baseUrl}}"], "path": ["get-events"] }
+          }
+        },
+        {
+          "name": "Get event",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/get-event?id={{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["get-event"],
+              "query": [{ "key": "id", "value": "{{eventId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Create event",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-api-key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"FurCon 2026\",\n  \"start_date\": \"2026-08-15\",\n  \"end_date\": \"2026-08-17\",\n  \"location\": \"CDMX\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/create-event", "host": ["{{baseUrl}}"], "path": ["create-event"] }
+          }
+        },
+        {
+          "name": "Update event",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "x-api-key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{eventId}}\",\n  \"name\": \"Updated Name\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/update-event", "host": ["{{baseUrl}}"], "path": ["update-event"] }
+          }
+        },
+        {
+          "name": "Delete event",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/delete-event?id={{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["delete-event"],
+              "query": [{ "key": "id", "value": "{{eventId}}" }]
+            },
+            "description": "⚠️ Requires MAINTAINER key"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Import",
+      "item": [
+        {
+          "name": "Import schedule from image",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "image", "type": "file", "src": [] },
+                { "key": "event_id", "value": "{{eventId}}", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/import-schedule", "host": ["{{baseUrl}}"], "path": ["import-schedule"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Create API key",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-api-key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"general\",\n  \"label\": \"New App Key\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/create-api-key", "host": ["{{baseUrl}}"], "path": ["create-api-key"] },
+            "description": "⚠️ Requires MAINTAINER key"
+          }
+        }
+      ]
+    }
+  ]
+}
