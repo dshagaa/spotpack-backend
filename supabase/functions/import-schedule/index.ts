@@ -33,8 +33,8 @@ Rules:
 - If times are in 12h format (AM/PM), convert to 24h
 - If no classification is indicated, default to "general"
 - If no category is clear, default to "other"
-- Return ONLY valid JSON array, no other text
-- Support both Spanish and English text in the image
+- Return ONLY valid JSON array, no other text, no pretty-printing, no whitespace between items
+- Return each object on a single line, compact format
 
 Return format:
 [
@@ -118,7 +118,7 @@ export async function handle(
           },
         ],
         temperature: 0.1,
-        max_tokens: 8000,
+        max_tokens: 12000,
       }),
     });
 
