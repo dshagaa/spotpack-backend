@@ -1,6 +1,11 @@
 // _shared/response.ts — JSON response helpers for Edge Functions
 
-const HEADERS = { "Content-Type": "application/json" };
+const HEADERS = {
+  "Content-Type": "application/json",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "x-api-key, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
+};
 
 /** 200 OK with JSON body */
 export function ok(data: Record<string, unknown>): Response {
@@ -34,4 +39,9 @@ export function forbidden(detail: string): Response {
 /** 400 Bad Request */
 export function badRequest(detail: string): Response {
   return error("Bad request", 400, detail);
+}
+
+/** Handle CORS preflight */
+export function corsPreflight(): Response {
+  return new Response(null, { status: 204, headers: HEADERS });
 }
