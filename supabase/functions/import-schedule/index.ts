@@ -13,7 +13,7 @@ import {
 const VISION_MODEL = "mimo-v2.5-free";
 const OPENCODE_URL = "https://opencode.ai/zen/v1/chat/completions";
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB — Edge Functions have 60s timeout
 
 const SYSTEM_PROMPT =
   `You are a schedule extraction assistant. Analyze the convention schedule image and return a JSON array of events.
@@ -118,7 +118,7 @@ export async function handle(
           },
         ],
         temperature: 0.1,
-        max_tokens: 16000,
+        max_tokens: 8000,
       }),
     });
 
